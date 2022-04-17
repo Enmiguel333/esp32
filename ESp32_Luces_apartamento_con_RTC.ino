@@ -1,4 +1,5 @@
 
+
 // Import required libraries
 #include "WiFi.h"
 #include "ESPAsyncWebServer.h"
@@ -8,7 +9,7 @@
 char DiaSemana[][4] = {"Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"};
 // La linea fija la fecha, hora y dia de la semana, se debe suprimir la linea en la segunda carga
 // Ejemplo 2018 noviembre 11, 08:00:00  dia 6-Sabado (0=Dom, 1=Lun, 2=Mar, 3=Mie, 4=Jue, 5=Vie, 6=Sab)
-//DateTime dt(2022, 04, 15, 23, 01, 55, 5);
+//DateTime dt(2022, 04, 17, 12, 47, 55, 0);
 
 
 // Set to true to define Relay as Normally Open (NO)
@@ -28,8 +29,8 @@ String relayNames[NUM_RELAYS] = { "Led Baja ", "Led Alta ", "Radio", "Jardin" };
 
 
 // Replace with your network credentials
-const char* ssid = "Vidos <3";
-const char* password = "jueves2013";
+const char* ssid = "nombre";
+const char* password = "pass";
 
 const char* PARAM_INPUT_1 = "relay";  
 const char* PARAM_INPUT_2 = "state";
@@ -104,7 +105,7 @@ String relayState(int numRelay){
 void setup(){
   //rtc
   pinMode(33, OUTPUT);
-   
+   digitalWrite(33, HIGH);
     rtc.begin();
   Wire.begin();
 
@@ -176,14 +177,14 @@ WiFi.config(ip, gateway, subnet);//Configuración ip estática
 void loop() {
 
   DateTime now = rtc.now();
-  /*Serial.print("Hora: ");
+  Serial.print("Hora: ");
   Serial.print(now.hour());
   Serial.print(":");
   Serial.print(now.minute());
   Serial.print(":");
   Serial.println(now.second());
 
-  delay(1000);*/
+  delay(1000);
 
   int hora    = now.hour();
   int minuto  = now.minute();
@@ -192,24 +193,24 @@ void loop() {
   //////////////Regador manana//////////////////////////
 
   if (hora == 7 && minuto == 0) {
-    //Serial.print(" Regador encendido ");
-    digitalWrite(33, HIGH);
+    Serial.print(" Regador encendido ");
+    digitalWrite(33, LOW);
   }
 
   if (hora == 7 && minuto >= 1) {
-    //Serial.print(" Regador  apagado ");
-    digitalWrite(33, LOW);
+    Serial.print(" Regador  apagado ");
+    digitalWrite(33, HIGH);
   }
 
 ////////////// Regador noche //////////////////////
    if (hora == 22 && minuto == 0) {
-    //Serial.print(" Regador encendido ");
-    digitalWrite(33, HIGH);
+    Serial.print(" Regador noche encendido ");
+    digitalWrite(33, LOW);
   }
 
   if (hora == 22 && minuto >= 1) {
-    //Serial.print(" Regador  apagado ");
-    digitalWrite(33, LOW);
+    Serial.print(" Regador noche  apagado ");
+    digitalWrite(33, HIGH);
   }
 
 }
