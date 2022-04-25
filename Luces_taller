@@ -1,0 +1,222 @@
+/*
+  LV1 = PIN 34
+  LV2 = PIN 35
+  LV3 = PIN 32
+  LV4 = PIN 33
+*/
+
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <UniversalTelegramBot.h>
+// Reemplazar con los datos de tu red wifi
+#define WIFI_SSID "wifi"
+#define WIFI_PASSWORD "pass"
+//Token de Telegram BOT se obtenienen desde Botfather en telegram
+#define BOT_TOKEN "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+const unsigned long tiempo = 1000; //tiempo medio entre mensajes de escaneo
+WiFiClientSecure secured_client;
+UniversalTelegramBot bot(BOT_TOKEN, secured_client);
+unsigned long tiempoAnterior; //última vez que se realizó el análisis de mensajes
+//const int pinalarma = 32; //pin arduino alarma
+const int led19 = 19;
+const int led21 = 21;
+const int led22 = 22;
+const int led23 = 23;
+int estadoLed19 = 0;
+int estadoLed21 = 0;
+int estadoLed22 = 0;
+int estadoLed23 = 0;
+int inicio = 1;
+//int estadoalarma = 0;
+String chat_id;
+#define ID_Chat "xxxxxxxxxxx"//ID_Chat se obtiene de telegram
+
+
+
+void mensajesNuevos(int numerosMensajes)
+{
+  for (int i = 0; i < numerosMensajes; i++)
+  {
+    String chat_id = bot.messages[i].chat_id;
+    String text = bot.messages[i].text;
+    //////////Luz 1 en el pin 19//////
+    if (text == "/LuzInternaOn")
+    {
+      digitalWrite(led19, LOW); //
+      estadoLed19 = 1;
+      bot.sendMessage(chat_id, "Luz interna encendida.", "");
+    }
+
+    if (text == "/LuzInternaOff")
+    {
+      estadoLed19 = 0;
+      digitalWrite(led19, HIGH); //
+      bot.sendMessage(chat_id, "Luz interna apagada.", "");
+    }
+    //////////Luz 2 en el pin 21//////
+    if (text == "/FaroOn")
+    {
+      digitalWrite(led21, LOW);
+      estadoLed21 = 1;
+      bot.sendMessage(chat_id, "Faro encendido.", "");
+    }
+
+    if (text == "/FaroOff")
+    {
+      estadoLed21 = 0;
+      digitalWrite(led21, HIGH);
+      bot.sendMessage(chat_id, "Faro apagado.", "");
+    }
+
+    if (text == "/LuzCalleOn")
+    {
+      digitalWrite(led22, LOW); //
+      estadoLed22 = 1;
+      bot.sendMessage(chat_id, "Luz de la calle encendida.", "");
+    }
+
+    if (text == "/LuzCalleOff")
+    {
+      estadoLed22 = 0;
+      digitalWrite(led22, HIGH); //
+      bot.sendMessage(chat_id, "Luz de la calle apagada.", "");
+    }
+    if (text == "/AlarmaFija")
+    {
+      digitalWrite(led23, LOW); //
+      estadoLed23 = 1;
+      bot.sendMessage(chat_id, "Alarma sonora activada fija.", "");
+    }
+
+    if (text == "/AlarmaOff")
+    {
+      estadoLed23 = 0;
+      digitalWrite(led23, HIGH); //
+      bot.sendMessage(chat_id, "Alarma sonora desactivada.", "");
+    }
+
+    if (text == "/AlarmaCorta")
+    {
+      digitalWrite(led23, LOW); //
+      estadoLed23 = 1;
+      bot.sendMessage(chat_id, "Alarma sonora activada por 30 segundos.", "");
+      delay(30000);
+      digitalWrite(led23, HIGH);
+      bot.sendMessage(chat_id, "Alarma sonora desactivada.", "");
+    }
+
+    ///////prueba pin alarma////////
+
+
+
+
+    ////////Estado de las luces  ///////
+
+    if (text == "/Estado")
+    {
+      ////Estado luz 1////
+      if (estadoLed19)
+      {
+        bot.sendMessage(chat_id, "Luz interna encendida.", "");
+      }
+      else
+      {
+        bot.sendMessage(chat_id, "Luz interna apagada.", "");
+      }
+      ////Estado luz 2////
+      if (estadoLed21)
+      {
+        bot.sendMessage(chat_id, "Faro encendido.", "");
+      }
+      else
+      {
+        bot.sendMessage(chat_id, "Faro apagado.", "");
+      }
+      if (estadoLed22)
+      {
+        bot.sendMessage(chat_id, "Luz de la calle encendida.", "");
+      }
+      else
+      {
+        bot.sendMessage(chat_id, "Luz de la calle apagada.", "");
+      }
+      if (estadoLed23)
+      {
+        bot.sendMessage(chat_id, "Alarma sonora activa.", "");
+      }
+      else
+      {
+        bot.sendMessage(chat_id, "Alarma sonora inactiva.", "");
+      }
+    }
+
+    if (text == "/Ayuda")
+    {
+      String ayuda = "Control de luces MalpaDesign"".\n\n";
+      ayuda += "Opciones:\n\n";
+      ayuda += "/LuzInternaOn: Para encender luz interna. \n\n";
+      ayuda += "/LuzInternaOff: Para apagar la luz interna. \n\n";
+      ayuda += "/FaroOn: Para encender el faro. \n\n";
+      ayuda += "/FaroOff: Para apagar el faro. \n\n";
+      ayuda += "/LuzCalleOn: Enciende las luces de la calle. \n\n";
+      ayuda += "/LuzCalleOff: Apaga las luces de la calle. \n\n";
+      ayuda += "/AlarmaCorta: Suena la alarma por 30 seg. \n\n";
+      ayuda += "/AlarmaFija: Suena la alarma fija. \n\n";
+      ayuda += "/AlarmaOff: Apaga la alarma. \n\n";
+      ayuda += "/Estado : Estado del sistema.\n\n";
+      ayuda += "/Ayuda: Imprime este menú. \n";
+      bot.sendMessage(chat_id, ayuda, "");
+    }
+
+  }
+}
+
+void setup()
+{
+
+
+  pinMode(led19, OUTPUT); //inicializar  pin 19 digital como salida.
+  pinMode(led21, OUTPUT); //inicializar pin 21 digital como salida.
+  pinMode(led22, OUTPUT); //inicializar  pin 22 digital como salida.
+  pinMode(led23, OUTPUT); //inicializar pin 23 digital como salida.
+  digitalWrite(led19, HIGH); //
+  digitalWrite(led21, HIGH);
+  digitalWrite(led22, HIGH); //
+  digitalWrite(led23, HIGH);
+  // Intenta conectarse a la red wifi
+  Serial.print("Conectando a la red ");
+  Serial.print(WIFI_SSID);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  secured_client.setCACert(TELEGRAM_CERTIFICATE_ROOT); //Agregar certificado raíz para api.telegram.org
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.print("\nConectado a la red wifi. Dirección IP: ");
+  Serial.println(WiFi.localIP());
+  if (inicio == 1) {
+    Serial.println("Sistema Activo");
+    bot.sendMessage(ID_Chat, "Sistema activo.", "");//Enviamos un mensaje a telegram para informar que el sistema está listo
+    inicio = 0;
+  }
+}
+
+void loop()
+{
+  //Verifica si hay datos nuevos en telegram cada 1 segundo
+  if (millis() - tiempoAnterior > tiempo)
+  {
+    int numerosMensajes = bot.getUpdates(bot.last_message_received + 1);
+
+    while (numerosMensajes)
+    {
+      Serial.println("Comando recibido");
+      mensajesNuevos(numerosMensajes);
+      numerosMensajes = bot.getUpdates(bot.last_message_received + 1);
+    }
+
+    tiempoAnterior = millis();
+  }
+
+}
