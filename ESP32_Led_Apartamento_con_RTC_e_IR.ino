@@ -31,8 +31,8 @@ String relayNames[NUM_RELAYS] = { "Led Baja ", "Led Alta ", "Radio", "Jardin" };
 
 
 // Replace with your network credentials
-const char* ssid = "Vidos <3";
-const char* password = "jueves2013";
+const char* ssid = "wifi";
+const char* password = "pass";
 unsigned long previousMillis = 0;
 unsigned long interval = 30000;
 const char* PARAM_INPUT_1 = "relay";  
@@ -318,27 +318,27 @@ WiFi.config(ip, gateway, subnet);//Configuración ip estática
   });
   // Receive an HTTP GET request  tv
   server.on("/on4", HTTP_GET, [] (AsyncWebServerRequest *request) {
-    IrSender.sendNEC(0xE0E040BF, 32); //power
+    IrSender.sendSAMSUNG(0xE0E040BF, 32); //power
     request->send(200, "text/plain", "ok");
   });
   // Receive an HTTP GET request  tv
   server.on("/on5", HTTP_GET, [] (AsyncWebServerRequest *request) {
-    IrSender.sendNEC(0xE0E0807F, 32); //source
+    IrSender.sendSAMSUNG(0xE0E0807F, 32); //source
     request->send(200, "text/plain", "ok");
   });
    // Receive an HTTP GET request  tv
   server.on("/on6", HTTP_GET, [] (AsyncWebServerRequest *request) {
-    IrSender.sendNEC(0xE0E0E01F, 32); //vol+
+    IrSender.sendSAMSUNG(0xE0E0E01F, 32); //vol+
     request->send(200, "text/plain", "ok");
   });
  // Receive an HTTP GET request  tv
   server.on("/on7", HTTP_GET, [] (AsyncWebServerRequest *request) {
-    IrSender.sendNEC(0xE0E0D02F, 32); //vol-
+    IrSender.sendSAMSUNG(0xE0E0D02F, 32); //vol-
     request->send(200, "text/plain", "ok");
   });
 // Receive an HTTP GET request  tv
   server.on("/on8", HTTP_GET, [] (AsyncWebServerRequest *request) {
-    IrSender.sendNEC(0xE0E0F00F, 32); //mute
+    IrSender.sendSAMSUNG(0xE0E0F00F, 32); //mute
     request->send(200, "text/plain", "ok");
   });
 // Receive an HTTP GET request  cinta led ventana
