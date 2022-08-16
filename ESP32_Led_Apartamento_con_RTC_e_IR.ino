@@ -21,8 +21,8 @@ char DiaSemana[][4] = {"Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"};
 #define NUM_RELAYS  4
 
 //IP Estatica
-IPAddress ip(192,168,0,108);     
-IPAddress gateway(192,168,0,1);   
+IPAddress ip(192,168,1,108);     
+IPAddress gateway(192,168,1,1);   
 IPAddress subnet(255,255,255,0);
 
 // Assign each GPIO to a relay
@@ -31,7 +31,7 @@ String relayNames[NUM_RELAYS] = { "Led Baja ", "Led Alta ", "Radio", "Jardin" };
 
 
 // Replace with your network credentials
-const char* ssid = "wifi";
+const char* ssid = "user";
 const char* password = "pass";
 unsigned long previousMillis = 0;
 unsigned long interval = 30000;
@@ -93,17 +93,18 @@ const char index_html[] PROGMEM = R"rawliteral(
   <h1>Radio:</h1>
   <br><br>
   <button class="button" onmousedown="toggle1Checkbox('on');" ontouchstart="toggle1Checkbox('on');" >Source</button>
-  <button class="button" onmousedown="toggle2Checkbox('on2');" ontouchstart="toggle2Checkbox('on2');" >VOL+</button>
   <button class="button" onmousedown="toggle3Checkbox('on3');" ontouchstart="toggle3Checkbox('on3');" >VOL-</button>
+  <button class="button" onmousedown="toggle2Checkbox('on2');" ontouchstart="toggle2Checkbox('on2');" >VOL+</button>
+  
  <br><br>
   <h1>Tv:</h1>
   <br><br>
   <button class="button" onmousedown="toggle4Checkbox('on4');" ontouchstart="toggle4Checkbox('on4');" >On/Off</button>
   <button class="button" onmousedown="toggle5Checkbox('on5');" ontouchstart="toggle5Checkbox('on5');" >Source</button>
   <br><br>
-  <button class="button" onmousedown="toggle6Checkbox('on6');" ontouchstart="toggle6Checkbox('on6');" >VOL+</button>
-  <button class="button" onmousedown="toggle7Checkbox('on7');" ontouchstart="toggle7Checkbox('on7');" >VOL-</button>
   <button class="button" onmousedown="toggle8Checkbox('on8');" ontouchstart="toggle8Checkbox('on8');" >Mute</button>
+  <button class="button" onmousedown="toggle7Checkbox('on7');" ontouchstart="toggle7Checkbox('on7');" >VOL-</button>
+  <button class="button" onmousedown="toggle6Checkbox('on6');" ontouchstart="toggle6Checkbox('on6');" >VOL+</button>
   <br><br>
   <h1>Led Ventana:</h1>
   <br><br>
@@ -387,28 +388,37 @@ void loop() {
   int hora    = now.hour();
   int minuto  = now.minute();
   int segundo = now.second();
+  int mes = now.month();
   
   //////////////Regador manana//////////////////////////
 
-  if (hora == 7 && minuto == 0) {
+ if (hora == 7 && minuto == 40 && segundo == 0) {
     Serial.print(" Regador encendido ");
     digitalWrite(33, LOW);
   }
 
-  if (hora == 7 && minuto >= 1) {
+  if (hora == 7 && minuto == 40 && segundo >= 15) {
     Serial.print(" Regador  apagado ");
     digitalWrite(33, HIGH);
   }
 
 ////////////// Regador noche //////////////////////
-   if (hora == 22 && minuto == 0) {
+   if (hora == 20 && minuto == 0 && segundo == 0) {
     Serial.print(" Regador noche encendido ");
     digitalWrite(33, LOW);
   }
 
-  if (hora == 22 && minuto >= 1) {
+  if (hora == 20 && minuto == 0 && segundo >= 15) {
     Serial.print(" Regador noche  apagado ");
     digitalWrite(33, HIGH);
+  }
+//led ventana 
+ if (hora >= 18 && minuto >= 0 && mes >= 11 && mes <= 1) {
+    Serial.print(" Led Ventana ON ");
+  }
+   if (hora >= 6 && minuto >= 0 && mes >= 11 && mes <= 1) {
+    Serial.print(" Led Ventana OFF ");
+    IrSender.sendNEC(0xFF02FD, 32);
   }
 unsigned long currentMillis = millis();
   // if WiFi is down, try reconnecting every CHECK_WIFI_TIME seconds
