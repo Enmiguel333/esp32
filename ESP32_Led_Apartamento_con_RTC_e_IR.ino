@@ -1,3 +1,24 @@
+
+
+//2 prender pc
+//4 ir
+//5 jardin manual
+//13 led alta cuarto bebe
+//14 fresas 
+//15 jardin auto
+//18 led baja cuarto bebe
+//19 led alta cuarto
+//21 sda
+//22 scl
+//23 led baja cuarto
+//25 led baja sala
+//26 radio 
+//27 led baja pc
+//32 led alta sala
+//33 led alta pc
+//34 boton cuarto
+//35 boton cuarto bebe
+
 // Import required libraries
 #include "WiFi.h"
 #include "ESPAsyncWebServer.h"
@@ -18,7 +39,7 @@ char DiaSemana[][4] = {"Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"};
 #define RELAY_NO    true
 
 // Set number of relays
-#define NUM_RELAYS  4
+#define NUM_RELAYS  5
 
 //IP Estatica
 IPAddress ip(192,168,1,108);     
@@ -26,13 +47,13 @@ IPAddress gateway(192,168,1,1);
 IPAddress subnet(255,255,255,0);
 
 // Assign each GPIO to a relay
-int relayGPIOs[NUM_RELAYS] = {27, 14, 26, 25};
-String relayNames[NUM_RELAYS] = { "Led Baja ", "Led Alta ", "Radio", "Jardin" };
+int relayGPIOs[NUM_RELAYS] = {27, 14, 26, 25, 32 };
+String relayNames[NUM_RELAYS] = { "Led Baja: ", "Led Alta: ", "Radio:", "Jardin:", "Fresas:" };
 
 
 // Replace with your network credentials
-const char* ssid = "user";
-const char* password = "pass";
+const char* ssid = "Vidos <3";
+const char* password = "jueves2013";
 unsigned long previousMillis = 0;
 unsigned long interval = 30000;
 const char* PARAM_INPUT_1 = "relay";  
@@ -44,19 +65,21 @@ AsyncWebServer server(80);
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML><html>
 <head>
+
 <title>Control Apartamento</title>
+<meta name="theme-color" content="#9b0000">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    html {font-family: Arial; display: inline-block; text-align: center;}
-    h2 {font-size: 3.0rem;}
-    h1 {font-size: 1.0rem;}
-    p {font-size: 3.0rem;}
-    body {max-width: 600px; margin:0px auto; padding-bottom: 25px;}
+    html {font-family: Arial; display: inline-block; text-align: center; color: #ffffff;}
+    h2 {font-size: 3.0rem; color: #ffffff;}
+    h1 {font-size: 1.0rem; color: #ffffff;}
+    p {font-size: 3.0rem; color: #ffffff;}
+    body {max-width: 600px; margin:0px auto; padding-bottom: 25px; background-color: #111e27;}
     .switch {position: relative; display: inline-block; width: 120px; height: 68px} 
     .switch input {display: none}
-    .slider {position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; border-radius: 34px}
+    .slider {position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #6f6464; border-radius: 34px}
     .slider:before {position: absolute; content: ""; height: 52px; width: 52px; left: 8px; bottom: 8px; background-color: #fff; -webkit-transition: .4s; transition: .4s; border-radius: 68px}
-    input:checked+.slider {background-color: #2196F3}
+    input:checked+.slider {background-color: #9b0000}
     input:checked+.slider:before {-webkit-transform: translateX(52px); -ms-transform: translateX(52px); transform: translateX(52px)}
      .button {
         padding: 10px 20px;
@@ -64,7 +87,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         text-align: center;
         outline: none;
         color: #fff;
-        background-color: #2196F3;
+        background-color: #9b0000;
         border: none;
         border-radius: 68px;
         //box-shadow: 0 6px #999;
@@ -86,6 +109,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       }
   </style>
 </head>
+
 <body>
   <h2>Control Apartamento</h2>
   %BUTTONPLACEHOLDER%
@@ -114,6 +138,9 @@ const char index_html[] PROGMEM = R"rawliteral(
   <button class="button" onmousedown="toggle11Checkbox('on11');" ontouchstart="toggle11Checkbox('on11');" >Rojo</button>
   <button class="button" onmousedown="toggle12Checkbox('on12');" ontouchstart="toggle12Checkbox('on12');" >Verde</button>
   <button class="button" onmousedown="toggle13Checkbox('on13');" ontouchstart="toggle13Checkbox('on13');" >Azul</button>
+  <br><br>
+  <center> <h1>Regando las fresas a las 7:30am, 12:20pm, 7:50pm, 20seg, menos los martes y viernes al medio dia ni a la noche y el jardin a a las 7:51pm de los martes y viernes, 30seg.</h1></center>
+
    <script>
    function toggle1Checkbox(x) {
      var xhr = new XMLHttpRequest();
@@ -230,6 +257,8 @@ void setup(){
 IrSender.begin(); // Inicializamos el emisor infrarrojo
   
   //rtc
+  pinMode(32, OUTPUT);
+   digitalWrite(32, HIGH);
   pinMode(33, OUTPUT);
    digitalWrite(33, HIGH);
     rtc.begin();
@@ -253,11 +282,21 @@ WiFi.config(ip, gateway, subnet);//Configuración ip estática
   }
   
   // Connect to Wi-Fi
+  uint32_t notConnectedCounter = 0;
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
-    Serial.println("Connecting to WiFi..");
+    Serial.println("Conectando al WiFi..");
+     notConnectedCounter++;
+      if(notConnectedCounter > 150) { // Reset board if not connected after 5s
+          Serial.println("Reseteando por que no conecta el WiFi.");
+          ESP.restart();
+      }
+    
   }
+  if (WiFi.status() == WL_CONNECTED){
+    Serial.println("Conectado al WiFi.");
+   }
 
   // Print ESP32 Local IP Address
   Serial.println(WiFi.localIP());
@@ -382,41 +421,80 @@ void loop() {
   Serial.print(now.minute());
   Serial.print(":");
   Serial.println(now.second());
-
+  Serial.print(" Fecha: ");
+  Serial.print(" Dia: ");
+  Serial.print(now.dayOfWeek());
+  Serial.print("Mes:");
+  Serial.print(now.month());
+  Serial.print("Año:");
+  Serial.println(now.year());
   delay(1000);
 
   int hora    = now.hour();
   int minuto  = now.minute();
   int segundo = now.second();
   int mes = now.month();
+  int dia = now.dayOfWeek();
   
-  //////////////Regador manana//////////////////////////
+  //////////////Regador manana fresas//////////////////////////
 
- if (hora == 7 && minuto == 40 && segundo == 0) {
+ if (hora == 7 && minuto == 30 && segundo == 0) {
     Serial.print(" Regador encendido ");
+    digitalWrite(32, LOW);
+  }
+
+  if (hora == 7 && minuto == 30 && segundo >= 20) {
+    Serial.print(" Regador  apagado ");
+    digitalWrite(32, HIGH);
+  }
+////////////// Regador mediodia fresas//////////////////////
+    if (hora == 12 && minuto == 20 && segundo == 0 && dia != 5 && dia != 2) {
+    Serial.print(" Regador mediodia encendido ");
+    digitalWrite(32, LOW);
+  }
+
+  if (hora == 12 && minuto == 20 && segundo >= 20) {
+    Serial.print(" Regador mediodia  apagado ");
+    digitalWrite(32, HIGH);
+  }
+
+////////////// Regador noche fresas//////////////////////
+   if (hora == 19 && minuto == 50 && segundo == 0 && dia != 5 && dia != 2) {
+    Serial.print(" Regador noche encendido ");
+    digitalWrite(32, LOW);
+  }
+
+  if (hora == 19 && minuto == 50 && segundo >= 20) {
+    Serial.print(" Regador noche  apagado ");
+    digitalWrite(32, HIGH);
+  }
+
+  ////////////// Regador jardin //////////////////////
+   if (hora == 19 && minuto == 51 && segundo == 0 && dia == 2) {
+    Serial.print(" Regador jardin noche encendido ");
     digitalWrite(33, LOW);
   }
 
-  if (hora == 7 && minuto == 40 && segundo >= 15) {
-    Serial.print(" Regador  apagado ");
+  if (hora == 19 && minuto == 51 && segundo >= 30) {
+    Serial.print(" Regador jardin noche  apagado ");
     digitalWrite(33, HIGH);
   }
 
-////////////// Regador noche //////////////////////
-   if (hora == 20 && minuto == 0 && segundo == 0) {
-    Serial.print(" Regador noche encendido ");
+    if (hora == 19 && minuto == 51 && segundo == 0 && dia == 5) {
+    Serial.print(" Regador jardin noche encendido ");
     digitalWrite(33, LOW);
   }
 
-  if (hora == 20 && minuto == 0 && segundo >= 15) {
-    Serial.print(" Regador noche  apagado ");
+    if (hora == 19 && minuto == 51 && segundo >= 30) {
+    Serial.print(" Regador jardin noche  apagado ");
     digitalWrite(33, HIGH);
   }
 //led ventana 
- if (hora >= 18 && minuto >= 0 && mes >= 11 && mes <= 1) {
+ if (hora >= 18 && minuto >= 0 && segundo >= 0 && segundo <= 1 ) {
     Serial.print(" Led Ventana ON ");
+     IrSender.sendNEC(0xFF02FD, 32);
   }
-   if (hora >= 6 && minuto >= 0 && mes >= 11 && mes <= 1) {
+   if (hora >= 6 && minuto >= 0 && segundo >= 0 && segundo <= 1 ) {
     Serial.print(" Led Ventana OFF ");
     IrSender.sendNEC(0xFF02FD, 32);
   }
@@ -424,9 +502,13 @@ unsigned long currentMillis = millis();
   // if WiFi is down, try reconnecting every CHECK_WIFI_TIME seconds
   if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillis >=interval)) {
     Serial.print(millis());
-    Serial.println("Reconnecting to WiFi...");
-    WiFi.disconnect();
+    Serial.println("Reconectando al WiFi...");
+   WiFi.disconnect();
     WiFi.reconnect();
+    
+    //ESP.restart();
     previousMillis = currentMillis;
   }
+   
+   
 }
